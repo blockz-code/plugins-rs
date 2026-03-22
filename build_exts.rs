@@ -2,45 +2,29 @@ use deno_core::extension;
 
 extension!(
     core_js, 
-    esm_entry_point = "plugins:core", 
+    esm_entry_point = "plugins-rs:core", 
     esm = [
-        dir "src/core",
-        "plugins:core" = "internal.js"
+        dir "src/extensions/core",
+        "plugins-rs:core" = "index.js"
     ]
 );
 
-extension!(
-    capture_js, 
-    esm_entry_point = "plugins:capture", 
-    esm = [
-        dir "src/extensions/capture",
-        "plugins:capture" = "internal.js"
-    ]
-);
-
+#[cfg(feature = "media")]
 extension!(
     media_js, 
-    esm_entry_point = "plugins:media", 
+    esm_entry_point = "plugins-rs:media", 
     esm = [
         dir "src/extensions/media",
-        "plugins:media" = "internal.js"
+        "plugins-rs:media" = "index.js"
     ]
 );
 
-extension!(
-    pty_js, 
-    esm_entry_point = "plugins:pty", 
-    esm = [
-        dir "src/extensions/pty",
-        "plugins:pty" = "internal.js"
-    ]
-);
-
+#[cfg(feature = "scrape")]
 extension!(
     scrape_js, 
-    esm_entry_point = "plugins:scrape", 
+    esm_entry_point = "plugins-rs:scrape", 
     esm = [
         dir "src/extensions/scrape",
-        "plugins:scrape" = "internal.js"
+        "plugins-rs:scrape" = "index.js"
     ]
 );

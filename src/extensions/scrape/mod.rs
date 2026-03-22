@@ -1,4 +1,4 @@
-use crate::types::Output;
+use crate::Output;
 
 use deno_core::{ extension, op2, OpState };
 
@@ -111,10 +111,10 @@ extension!(
         get_element,
         get_element_with_attr,
     ],
-    esm_entry_point = "plugins:scrape", 
+    esm_entry_point = "plugins-rs:scrape", 
     esm = [
         dir "src/extensions/scrape",
-        "plugins:scrape" = "internal.js"
+        "plugins-rs:scrape" = "index.js"
     ],
     docs = "Rust Based HTML Scraper", "scraper html from rust"
 );

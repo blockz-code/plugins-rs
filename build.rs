@@ -15,10 +15,10 @@ fn main() {
             startup_snapshot: None,
             skip_op_registration: false,
             extensions: vec![
-                build_exts::capture_js::init(),
+                #[cfg(feature = "media")]
                 build_exts::media_js::init(),
                 build_exts::core_js::init(),
-                build_exts::pty_js::init(),
+                #[cfg(feature = "scrape")]
                 build_exts::scrape_js::init(),
             ],
             with_runtime_cb: None,

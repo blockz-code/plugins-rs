@@ -1,0 +1,18 @@
+# For Linux
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+# For macOS
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "link-arg=-fuse-ld=/usr/local/bin/zld"]
+
+# For Windows
+[target.x86_64-pc-windows-msvc]
+linker = "lld.exe"
+
+
+
+[build]
+incremental = true
+rustflags = ["-Z", "threads=20"]

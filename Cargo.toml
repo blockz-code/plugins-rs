@@ -5,67 +5,82 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-all     = ["media", "pty", "scrape"]
-default = ["dep:reqwest"]
+all     = ["media", "scrape", "all_archives"]
 
-capture = ["dep:xcap"]
+default = ["dep:dirs", "dep:which", "dep:nanoid", "dep:uuid", "dep:tiny_http", "dep:reqwest"]
+
 media   = ["dep:ffbins-rs"]
-pty     = ["dep:portable-pty"]
 scrape  = ["dep:scraper", "dep:url"]
 
+all_archives = [ "7z", "zip", "tar", "tar_xz", "tar_gz" ]
+
+7z  = ["dep:sevenz-rust2"]
+zip  = ["dep:zip"]
+tar  = ["dep:tar"]
+tar_xz  = ["dep:tar", "dep:xz2"]
+tar_gz  = ["dep:tar", "dep:flate2"]
+
+
+
+[dev-dependencies]
+plugins-rs = { path = ".", features = [ "all" ]}
+
+
+
 [build-dependencies]
-deno_core = "0.380.0"
+deno_core = "0.393.0"
+
+
 
 [dependencies]
 log = "0.4.29"
-toml = { version = "0.9.11+spec-1.1.0", features = ["serde"] }
+toml = { version = "1.0.6+spec-1.1.0", features = ["serde"] }
 thiserror = "2.0.17"
 tokio = { version = "1", features = ["rt"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# Core
-tar = "0.4.44"
-xz2 = "0.1.7"
+# Utils
+dashmap = "6.1.0"
+inventory = "0.3.22"
+mime_guess2 = "2.3.1"
+parking_lot = "0.12.5"
 
-dirs = "6.0.0"
+# Core
+semver = "1.0.27"
 walkdir = "2.5.0"
-uuid = { version = "1.4.1", features = ["v4"] }
-which = "8.0.0"
-nanoid = "0.4.0"
-ansi_term = "0.12.1"
 include_dir = "0.7.4"
+# ---
+tempfile = "3.27.0"
+# ---
+zip = { version = "8.2.0", optional = true }
+tar = { version = "0.4.43", optional = true }
+flate2 = { version = "1.1.9", optional = true }
+xz2 = { version = "0.1.7", optional = true }
+sevenz-rust2 = { version = "0.20.2", optional = true }
 
 # DENO
-deno_ast  =  { version = "0.52.0", features = ["transpiling"] }
-deno_ops  = "0.256.0"
-deno_core = "0.380.0"
+deno_ast  =  { version = "=0.53.1", features = ["transpiling"] }
+deno_ops  = "0.269.0"
+deno_core = "0.393.0"
 deno_error = "=0.7.1"
-
-deno_npm = "=0.42.2"
-deno_doc = "=0.188.0"
-deno_path_util = "=0.6.4"
-deno_semver = "=0.9.1"
-
-# Screen Capture Ext
-xcap = { version = "0.8.1", optional = true }
 
 # Scrape Ext
 url = { version = "2.5.4", optional = true }
 regex = { version = "1.12.2", optional = true }
-scraper = { version = "0.25.0", optional = true }
-
-# PTY Ext
-portable-pty = { version = "0.9.0", optional = true }
+scraper = { version = "0.26.0", optional = true }
 
 # Media Ext
-ffbins-rs = { git = "https://github.com/blockz-dev/ffbins-rs", optional = true }
+ffbins-rs = { git = "https://github.com/blockz-code/ffbins-rs", optional = true }
 
+# Core Optional
+dirs = { version = "6.0.0", optional = true }
+which = { version = "8.0.0", optional = true }
+nanoid = { version = "0.4.0", optional = true }
+uuid = { version = "1.4.1", optional = true, features = ["v4"] }
+tiny_http = { version = "0.12.0", optional = true }
+reqwest = { version = "0.13.2", optional = true, features = [ "blocking", "cookies", "query", "form", "json", "multipart", "hickory-dns", "http3", "gzip", "brotli" ] }
 
-
-
-
-reqwest = { version = "0.13.1", features = ["blocking","cookies","query","form","json","multipart","hickory-dns","http3","gzip","brotli"], optional = true }
 
 
 
