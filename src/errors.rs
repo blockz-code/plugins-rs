@@ -11,6 +11,12 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
+    StripPrefixError(#[from] std::path::StripPrefixError),
+
+    #[error(transparent)]
+    WalkdirError(#[from] walkdir::Error),
+
+    #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
 
     #[error(transparent)]
@@ -43,8 +49,14 @@ pub enum Error {
     #[error(transparent)]
     DenoCoreTranspileError(#[from] deno_ast::TranspileError),
 
+    #[error(transparent)]
+    ZipError(#[from] zip::result::ZipError),
 
     
+
+    #[cfg(feature = "7z")]
+    #[error(transparent)]
+    SevenzRust2Error(#[from] sevenz_rust2::Error),
 
     #[cfg(any(feature = "media"))]
     #[error(transparent)]

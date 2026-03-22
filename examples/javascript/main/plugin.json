@@ -1,7 +1,0 @@
-{
-    "name": "Example Plugin",
-    "description": "Example Plugin",
-    "identifier": "com.example.plugin",
-    "version": "1.0.0",
-    "entry": "index.ts"
-}
