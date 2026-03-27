@@ -74,7 +74,9 @@ impl deno_core::ModuleLoader for ModuleLoader {
             let data = match fileinfo.scheme.as_str() {
                 "embed" => loader.elookup(fileinfo),
                 "static" => loader.lookup(fileinfo),
+                #[cfg(archives)]
                 "embed-archive" => loader.ealookup(fileinfo),
+                #[cfg(archives)]
                 "static-archive" => loader.alookup(fileinfo),
                 //"jsr" => {} comming soon
                 //"npm" => {} comming soon

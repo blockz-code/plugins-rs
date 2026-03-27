@@ -4,7 +4,23 @@ use std::env;
 //use std::fs::create_dir_all;
 use std::path::PathBuf;
 
+use cfg_aliases::cfg_aliases;
+
 fn main() {
+
+    cfg_aliases! {
+        
+        sevenz: { feature = "7z" },
+        zip: { feature = "zip" },
+        tar: { feature = "tar" },
+        tgz: { feature = "tar_gz" },
+        txz: { feature = "tar_xz" },
+
+        archives: { any(sevenz, zip, tar, tgz, txz) },
+
+        alltar: { any(tar, tgz, txz) },
+
+    }
 
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     let snapshot_path = out_dir.join("RUNJS_SNAPSHOT.bin");
