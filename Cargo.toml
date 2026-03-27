@@ -111,7 +111,7 @@ reqwest = { version = "0.13.2", optional = true, features = [ "blocking", "cooki
 
 
 # Helper Macros
-internal_macros = { version = "0.1.0", path = "./internal_macros" }
+internal_macros = { path = "./internal_macros" }
 
 
 [[example]]
