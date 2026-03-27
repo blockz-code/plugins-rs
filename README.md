@@ -28,7 +28,7 @@ plugin-rs = { version = "0.1.1" }
 
 
 **Not Supported yet**
-+ npm, jsr packages (only local)
++ packages like `npm`, `jsr`, `git` *(comming soon)*
 
 ---
 

@@ -5,6 +5,7 @@ mod modules;
 
 
 mod efs;
+use deno_core::Extension;
 pub use efs::{EFsData, EFsPath, FsFile, PluginsFs};
 
 
@@ -80,18 +81,19 @@ impl PluginSystem {
 
     //
 
-    async fn set_runtime(&mut self) {
+    async fn set_runtime(&mut self, exts: Option<Vec<Extension>>) {
 
-        let exstensions = vec![
-            //deno_webidl::deno_webidl::init(),
-            //deno_web::deno_web::init(Arc::new(Default::default()), None, Default::default()),
-
+        let mut exstensions = vec![
             crate::extensions::core::init(),
             #[cfg(feature = "media")]
             crate::extensions::media::init(),
             #[cfg(feature = "scrape")]
             crate::extensions::scrape::init(),
         ];
+
+        if exts.is_some() {
+            exstensions.extend(exts.unwrap());
+        }
 
         self.runtime = Some(JsRuntime::new(RuntimeOptions {
             is_main: true,
@@ -106,9 +108,9 @@ impl PluginSystem {
 
     //
 
-    async fn initialize(&mut self) -> Result<()> {
+    async fn initialize(&mut self, exts: Option<Vec<Extension>>) -> Result<()> {
 
-        self.set_runtime().await;
+        self.set_runtime(exts).await;
 
         let runtime = self.runtime.as_mut().unwrap();
 
@@ -131,15 +133,15 @@ impl PluginSystem {
     //
 
     /// use your custom rt to run.
-    pub async fn run_into(mut self) -> crate::Result<PluginSystem> {
-        self.initialize().await?;
+    pub async fn run_into(mut self, exstensions: Option<Vec<Extension>>) -> crate::Result<PluginSystem> {
+        self.initialize(exstensions).await?;
         Ok(self)
     }
 
     /// run custom
-    pub fn run(mut self) -> crate::Result<PluginSystem> {
+    pub fn run(mut self, exstensions: Option<Vec<Extension>>) -> crate::Result<PluginSystem> {
         let art = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
-        art.block_on(self.initialize())?;
+        art.block_on(self.initialize(exstensions))?;
         Ok(self)
     }
 
