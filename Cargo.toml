@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/blockz-code/plugins-rs"
 readme = "README.md"
 keywords = ["js", "ts", "deno", "plugins"]
-categories = ["development-tools", "plugins"]
+categories = ["development-tools"]
 authors = ["p1mo <101986259+p1mo@users.noreply.github.com>"]
 
 [lints.rust]
@@ -111,7 +111,7 @@ reqwest = { version = "0.13.2", optional = true, features = [ "blocking", "cooki
 
 
 # Helper Macros
-internal_macros = { path = "./internal_macros" }
+plugins-rs-macros = "0.1.0"
 
 
 [[example]]
