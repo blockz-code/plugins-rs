@@ -1,47 +1,57 @@
-#[cfg(feature = "zip")]
+#[cfg(zip)]
 use zip::ZipArchive;
 
-#[cfg(feature = "tar_xz")]
+#[cfg(txz)]
 use xz2::read::XzDecoder;
 
-#[cfg(feature = "tar_gz")]
+#[cfg(tgz)]
 use flate2::read::GzDecoder;
 
-#[cfg(feature = "7z")]
+#[cfg(sevenz)]
 use sevenz_rust2::{ArchiveReader as ArchiveReader7z, Password};
 
-#[cfg(any(feature = "tar", feature = "tar_xz", feature = "tar_gz"))]
+#[cfg(alltar)]
 use tar::Archive as ArchiveTar;
 
 
 
 use std::collections::HashMap;
-use std::io::{ BufReader, Read };
+
+#[cfg(any(zip, tar, txz, txz))]
+use std::io::Read;
+
+#[cfg(alltar)]
+use std::io::BufReader;
+
+
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "7z")]
+#[cfg(sevenz)]
 use crate::utils::is_some;
+
 use crate::{ Result };
 
+
+#[cfg(any(sevenz, zip))]
 use crate::utils::{ File, create_file };
 
 
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum ArchiveType {
-    #[cfg(feature = "7z")]
+    #[cfg(sevenz)]
     SevenZ,
-    #[cfg(feature = "zip")]
+    #[cfg(zip)]
     Zip,
-    #[cfg(feature = "tar")]
+    #[cfg(tar)]
     Tar,
-    #[cfg(feature = "tar_gz")]
+    #[cfg(tgz)]
     TarGz,
-    #[cfg(feature = "tar_gz")]
+    #[cfg(tgz)]
     Tgz,
-    #[cfg(feature = "tar_xz")]
+    #[cfg(txz)]
     TarXz,
-    #[cfg(feature = "tar_xz")]
+    #[cfg(txz)]
     Txz,
 }
 
@@ -49,38 +59,38 @@ impl ArchiveType {
     
     pub fn ext(self) -> &'static str {
         match self {
-            #[cfg(feature = "7z")]
+            #[cfg(sevenz)]
             ArchiveType::SevenZ => ".7z",
-            #[cfg(feature = "zip")]
+            #[cfg(zip)]
             ArchiveType::Zip => ".zip",
-            #[cfg(feature = "tar")]
+            #[cfg(tar)]
             ArchiveType::Tar => ".tar",
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ArchiveType::TarGz => ".tar.gz",
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ArchiveType::Tgz => ".tgz",
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ArchiveType::TarXz => ".tar.xz",
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ArchiveType::Txz => ".txz"
         }
     }
     
     pub fn from_ext(ext: &str) -> Option<ArchiveType> {
         match ext {
-            #[cfg(feature = "7z")]
+            #[cfg(sevenz)]
             ".7z" => Some(ArchiveType::SevenZ),
-            #[cfg(feature = "zip")]
+            #[cfg(zip)]
             ".zip" => Some(ArchiveType::Zip),
-            #[cfg(feature = "tar")]
+            #[cfg(tar)]
             ".tar" => Some(ArchiveType::Tar),
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ".tar.gz" => Some(ArchiveType::TarGz),
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ".tgz" => Some(ArchiveType::Tgz),
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ".tar.xz" => Some(ArchiveType::TarXz),
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ".txz" => Some(ArchiveType::Txz),
             _ => None
         }
@@ -95,19 +105,19 @@ impl ArchiveType {
             .unwrap();
 
         match extension.as_str() {
-            #[cfg(feature = "7z")]
+            #[cfg(sevenz)]
             ".7z" => Some(ArchiveType::SevenZ),
-            #[cfg(feature = "zip")]
+            #[cfg(zip)]
             ".zip" => Some(ArchiveType::Zip),
-            #[cfg(feature = "tar")]
+            #[cfg(tar)]
             ".tar" => Some(ArchiveType::Tar),
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ".tar.gz" => Some(ArchiveType::TarGz),
-            #[cfg(feature = "tar_gz")]
+            #[cfg(tgz)]
             ".tgz" => Some(ArchiveType::Tgz),
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ".tar.xz" => Some(ArchiveType::TarXz),
-            #[cfg(feature = "tar_xz")]
+            #[cfg(txz)]
             ".txz" => Some(ArchiveType::Txz),
             _ => None
         }
@@ -133,26 +143,26 @@ where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,
 {
     match ext {
-        #[cfg(feature = "7z")]
+        #[cfg(sevenz)]
         ArchiveType::SevenZ => archive_7z(read, data, callback),
-        #[cfg(feature = "zip")]
+        #[cfg(zip)]
         ArchiveType::Zip => archive_zip(read, data, callback),
-        #[cfg(feature = "tar")]
+        #[cfg(tar)]
         ArchiveType::Tar => archive_tar(read, data, callback),
-        #[cfg(feature = "tar_gz")]
+        #[cfg(tgz)]
         ArchiveType::TarGz => archive_tar_gz(read, data, callback),
-        #[cfg(feature = "tar_gz")]
+        #[cfg(tgz)]
         ArchiveType::Tgz => archive_tar_gz(read, data, callback),
-        #[cfg(feature = "tar_xz")]
+        #[cfg(txz)]
         ArchiveType::TarXz => archive_tar_xz(read, data, callback),
-        #[cfg(feature = "tar_xz")]
+        #[cfg(txz)]
         ArchiveType::Txz => archive_tar_xz(read, data, callback),
     }
 }
 
 
 
-#[cfg(feature = "7z")]
+#[cfg(sevenz)]
 fn archive_7z<F>(read: bool, data: &[u8], mut callback: F) -> Result<()>
 where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,
@@ -169,7 +179,7 @@ where
     Ok(())
 }
 
-#[cfg(feature = "zip")]
+#[cfg(zip)]
 fn archive_zip<F>(read: bool, data: &[u8], mut callback: F) -> Result<()>
 where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,
@@ -196,7 +206,7 @@ where
     Ok(())
 }
 
-#[cfg(feature = "tar")]
+#[cfg(tar)]
 fn archive_tar<F>(read: bool, data: &[u8], mut callback: F) -> Result<()>
 where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,
@@ -221,7 +231,7 @@ where
     Ok(())
 }
 
-#[cfg(feature = "tar_gz")]
+#[cfg(tgz)]
 fn archive_tar_gz<F>(read: bool, data: &[u8], mut callback: F) -> Result<()>
 where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,
@@ -246,7 +256,7 @@ where
     Ok(())
 }
 
-#[cfg(feature = "tar_xz")]
+#[cfg(txz)]
 fn archive_tar_xz<F>(read: bool, data: &[u8], mut callback: F) -> Result<()>
 where
     F: FnMut(PathBuf, Option<Vec<u8>>) + Send + Sync,

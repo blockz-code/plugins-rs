@@ -15,7 +15,12 @@ pub use internal_macros::bind_dir;
 
 
 pub use errors::{ Error, Result };
-pub use modules::{ ArchiveType, Source, SourceType, Plugin };
+
+
+#[cfg(archives)]
+pub use modules::ArchiveType;
+
+pub use modules::{ Source, SourceType, Plugin };
 
 
 use modules::{ ModuleLoader, SourceLoader };

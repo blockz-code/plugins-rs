@@ -46,12 +46,11 @@ pub enum Error {
     #[error(transparent)]
     DenoCoreTranspileError(#[from] deno_ast::TranspileError),
 
+
+    
+    #[cfg(feature = "zip")]
     #[error(transparent)]
     ZipError(#[from] zip::result::ZipError),
-
-
-
-
 
     #[cfg(feature = "7z")]
     #[error(transparent)]

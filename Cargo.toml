@@ -4,6 +4,14 @@ links = "plugins-rs"
 version = "0.1.0"
 edition = "2024"
 
+description = "js plugins for a rust app"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/blockz-code/plugins-rs"
+readme = "README.md"
+keywords = ["js", "ts", "deno", "plugins"]
+categories = ["development-tools", "plugins"]
+authors = ["p1mo <101986259+p1mo@users.noreply.github.com>"]
+
 [lints.rust]
 unsafe_code     = "forbid"
 unused          = "warn"
@@ -34,7 +42,7 @@ plugins-rs = { path = ".", features = [ "all" ]}
 
 [build-dependencies]
 deno_core = "0.394.0"
-
+cfg_aliases = "0.2.1"
 
 
 [dependencies]

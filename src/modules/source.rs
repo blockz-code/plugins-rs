@@ -10,11 +10,17 @@ use crate::{Error, Result};
 
 use crate::modules::FileInfo;
 
+#[cfg(archives)]
 use crate::utils::is_some;
+
 use crate::utils::check_for_file;
+
+#[cfg(archives)]
 use crate::utils::check_for_archive;
 
+#[cfg(archives)]
 use super::archives::{ ArchiveType, read_archive };
+
 use super::types::{ SourceItem, SourceEntry, EmbedEntry, Plugin };
 
 
@@ -23,18 +29,15 @@ use super::types::{ SourceItem, SourceEntry, EmbedEntry, Plugin };
 pub enum SourceType {
     Folder,
     File(String),
+    
+    #[cfg(archives)]
     Archive(ArchiveType),
 }
 
 impl SourceType {
 
-    pub fn get(path: &str) -> Option<SourceType> {
-
-        let (is_file, ext_file) = check_for_file(path.to_string());
-        if is_file {
-            return Some(Self::File(ext_file.to_string()))
-        }
-
+    #[cfg(archives)]
+    fn archive(path: &str) -> Option<SourceType> {
         let (is_archive, ext_archive) = check_for_archive(path.to_string());
         if is_archive {
             match ArchiveType::from_ext(ext_archive) {
@@ -43,6 +46,20 @@ impl SourceType {
                 },
                 _ => {},
             }
+        }
+        None
+    }
+
+    pub fn get(path: &str) -> Option<SourceType> {
+
+        let (is_file, ext_file) = check_for_file(path.to_string());
+        if is_file {
+            return Some(Self::File(ext_file.to_string()))
+        }
+
+        #[cfg(archives)]
+        if let Some(t) = SourceType::archive(path) {
+            return Some(t)
         }
         
         if PathBuf::from(path).metadata().ok()?.is_dir() {
@@ -119,6 +136,7 @@ impl Source {
         Ok(())
     }
 
+    #[cfg(archives)]
     fn read_embed_archives<F>(&self, source_id: usize, callback: &mut F) -> Result<()>
     where
         F: FnMut(SourceItem) + Send + Sync,
@@ -164,6 +182,7 @@ impl Source {
         Ok(())
     }
 
+    #[cfg(archives)]
     fn read_archives<F>(&self, source_id: usize, callback: &mut F) -> Result<()>
     where
         F: FnMut(SourceItem) + Send + Sync,
@@ -196,6 +215,7 @@ impl Source {
                     content: Some(entry.content.data().to_vec()),
                 });
             },
+            #[cfg(archives)]
             SourceType::Archive(atype) => read_archive(atype, true, entry.content.data(), |apath, adata| {
                 if is_some(apath.clone()) {
                     callback(SourceItem {
@@ -235,6 +255,7 @@ impl Source {
         Ok(())
     }
 
+    #[cfg(archives)]
     fn get_archive_files<F>(&self, source_id: usize, scheme: &str, entry: &FsFile, callback: &mut F) -> Result<()>
     where
         F: FnMut(SourceItem) + Send + Sync,
@@ -438,6 +459,7 @@ impl SourceLoader {
         }
     }
 
+    #[cfg(archives)]
     pub fn ealookup(&self, fileinfo: FileInfo) -> Result<Vec<u8>> {
         let embedded = self.holder.embedded.read();
         let mut data = None;
@@ -458,6 +480,7 @@ impl SourceLoader {
         }
     }
 
+    #[cfg(archives)]
     pub fn alookup(&self, fileinfo: FileInfo) -> Result<Vec<u8>> {
         let sources = self.holder.sources.read();
         let mut data = None;

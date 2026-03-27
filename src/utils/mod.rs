@@ -1,6 +1,10 @@
-use crate::{ Result };
 
+#[cfg(archives)]
+use crate::Result;
+
+#[cfg(archives)]
 use std::io::Write;
+
 use std::path::PathBuf;
 
 
@@ -8,8 +12,10 @@ use std::path::PathBuf;
 
 
 
+#[cfg(archives)]
 pub type File = tempfile::SpooledTempFile;
 
+#[cfg(archives)]
 pub fn create_file(buf: &[u8]) -> Result<File> {
     let mut file = tempfile::spooled_tempfile(buf.len());
     file.write_all(buf)?;
@@ -29,7 +35,11 @@ pub fn exts_files() -> Vec<&'static str> {
 }
 
 pub fn exts_archives() -> Vec<&'static str> {
+
+    #[cfg(any(feature = "7z", feature = "zip", feature = "tar", feature = "tar_gz", feature = "tar_xz"))]
     let mut ext = vec![];
+    #[cfg(not(any(feature = "7z", feature = "zip", feature = "tar", feature = "tar_gz", feature = "tar_xz")))]
+    let ext = vec![];
 
     #[cfg(feature = "7z")]
     ext.extend(vec![".7z"]);
