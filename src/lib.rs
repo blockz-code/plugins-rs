@@ -8,7 +8,7 @@ mod efs;
 pub use efs::{EFsData, EFsPath, FsFile, PluginsFs};
 
 
-pub use internal_macros::bind_dir;
+pub use plugins_rs_macros::bind_dir;
 
 
 

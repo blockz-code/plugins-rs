@@ -1979,16 +1979,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "internal_macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "walkdir",
-]
-
-[[package]]
 name = "inventory"
 version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2645,11 +2635,11 @@ dependencies = [
  "dirs",
  "ffbins-rs",
  "flate2",
- "internal_macros",
  "log",
  "nanoid",
  "parking_lot",
  "plugins-rs",
+ "plugins-rs-macros",
  "regex",
  "reqwest",
  "scraper",
@@ -2669,6 +2659,18 @@ dependencies = [
  "which 8.0.2",
  "xz2",
  "zip",
+]
+
+[[package]]
+name = "plugins-rs-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4321b0ff7e3f1da8ae47e4fc8e7f2d6ecfcd3eff8fcb5a9801208e18b6fd0a68"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "walkdir",
 ]
 
 [[package]]
