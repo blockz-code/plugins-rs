@@ -1,37 +1,33 @@
-mod archives;
 mod extensions;
 mod errors;
-mod loader;
-#[allow(unused)]
-mod loader_utils;
-mod reader;
-mod sources;
 mod utils;
+mod modules;
+
+
+mod efs;
+pub use efs::{EFsData, EFsPath, FsFile, PluginsFs};
+
+
+pub use internal_macros::bind_dir;
+
+
+
+
 
 pub use errors::{ Error, Result };
-
-pub use sources::{Source, Sources, SourceRes};
-
-pub use loader::Loader;
-
-pub use reader::{ Reader };
-
-pub use utils::{ get_ext, get_type };
-pub use utils::{ url_info, url_create };
-pub use utils::{ File, FindType, SourceMapStore };
-pub use utils::{ is_archive, is_file, is_supported };
-pub use utils::{ create_file, transpile, mediatype };
+pub use modules::{ ArchiveType, Source, SourceType, Plugin };
 
 
-pub use include_dir;
+use modules::{ ModuleLoader, SourceLoader };
+
+
+
 
 
 
 use std::rc::Rc;
 use std::sync::Arc;
-use std::sync::Mutex;
 
-use deno_core::url::Url;
 use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use deno_core::PollEventLoopOptions;
@@ -41,15 +37,17 @@ use deno_core::{ serde_v8, v8 };
 
 
 
-//static RUNTIME_SNAPSHOT: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/RUNJS_SNAPSHOT.bin"));
 
+/*
 
+    static:
+
+*/
 
 
 pub struct PluginSystem {
-    reader : Reader,
+    sources : Arc<SourceLoader>,
     runtime : Option<JsRuntime>,
-    plugins : Arc<Mutex<Vec<Plugin>>>,
 }
 
 impl PluginSystem {
@@ -59,15 +57,19 @@ impl PluginSystem {
     pub fn builder() -> Self {
         Self {
             runtime : None,
-            reader : Reader::new(),
-            plugins : Arc::new(Mutex::new(Vec::new())),
+            sources : Arc::new(SourceLoader::new()),
         }
     }
 
     //
 
+    pub fn add_embed(self, source: Source) -> Self {
+        self.sources.add_embed(source);
+        self
+    }
+
     pub fn add_source(self, source: Source) -> Self {
-        self.reader.sources.set(source);
+        self.sources.add(source);
         self
     }
 
@@ -76,6 +78,9 @@ impl PluginSystem {
     async fn set_runtime(&mut self) {
 
         let exstensions = vec![
+            //deno_webidl::deno_webidl::init(),
+            //deno_web::deno_web::init(Arc::new(Default::default()), None, Default::default()),
+
             crate::extensions::core::init(),
             #[cfg(feature = "media")]
             crate::extensions::media::init(),
@@ -87,9 +92,8 @@ impl PluginSystem {
             is_main: true,
             inspector: false,
             startup_snapshot: None,
-            //startup_snapshot: Some(RUNTIME_SNAPSHOT),
             extensions: exstensions,
-            module_loader: Some(Rc::new(Loader::new(self.reader.clone()))),
+            module_loader: Some(Rc::new(ModuleLoader::new(self.sources.clone()))),
             ..Default::default()
         }));
 
@@ -97,54 +101,37 @@ impl PluginSystem {
 
     //
 
-    async fn load_sources(&mut self) -> Result<()> {
-
-        self.set_runtime().await;
-        
-        self.reader.clone().load_plugins(|source_num,  result | {
-
-            let mut plugins = self.plugins.lock().unwrap();
-
-            let mut json: Plugin = serde_json::from_slice(&result.data.unwrap()).unwrap();
-            let url = url_create(result.scheme, &json.identifier, json.entry.clone().into(), source_num, result.entry).unwrap();
-            json.set_source(source_num);
-            json.set_url(url);
-            plugins.push(json);
-
-            drop(plugins);
-
-        })?;
-
-        Ok(())
-    }
-
-    //
-
     async fn initialize(&mut self) -> Result<()> {
 
-        self.load_sources().await?;
+        self.set_runtime().await;
 
         let runtime = self.runtime.as_mut().unwrap();
 
-        let mut plugins = self.plugins.lock().unwrap();
+        // Preload Entrys
+        self.sources.preload()?;
+        self.sources.plugins()?;
 
+        // PluginSystem API
         runtime.execute_script("__RUNTIME_API__", include_str!("../api/index.js"))?;
 
-        for item in plugins.iter_mut() {
-            let mod_id = runtime.load_side_es_module(&item.url()).await?;
-            let result = runtime.mod_evaluate(mod_id);
-            result.await?;
-        }
+        // Init Loaded Static/Embed
+        self.sources.init_loaded(runtime).await?;
 
+        // Run runtime Loop
         runtime.run_event_loop(PollEventLoopOptions::default()).await?;
-
-        drop(plugins);
         
         Ok(())
     }
 
     //
 
+    /// use your custom rt to run.
+    pub async fn run_into(mut self) -> crate::Result<PluginSystem> {
+        self.initialize().await?;
+        Ok(self)
+    }
+
+    /// run custom
     pub fn run(mut self) -> crate::Result<PluginSystem> {
         let art = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
         art.block_on(self.initialize())?;
@@ -160,7 +147,7 @@ impl PluginSystem {
     //
 
     pub fn execute(&mut self, namespace: &'static str, plugin: &'static str, key: &'static str) -> crate::Result<serde_json::Value> {
-        let code = format!(r#"(window.loadPlugin("{}").{})"#, plugin, key);
+        let code = format!(r#"globalThis.Plugins.loadPlugin("{}").{}"#, plugin, key);
         let runtime = self.runtime.as_mut().unwrap();
         let result = runtime.execute_script(namespace, code)?;
         deno_core::scope!(scope, runtime);
@@ -203,40 +190,4 @@ impl PluginSystem {
 #[derive(serde::Serialize)]
 pub struct Output {
     pub data: String,
-}
-
-#[derive(Clone, serde::Deserialize, serde::Serialize)]
-pub struct Plugin {
-    pub name: String,
-    pub description: String,
-    pub identifier: String,
-    pub version: String,
-    pub entry: String,
-
-    #[serde(skip)]
-    url: Option<Url>,
-    #[serde(skip)]
-    source: Option<usize>,
-}
-
-impl Plugin {
-    
-    pub fn set_url(&mut self, url: Url) {
-        self.url = Some(url);
-    }
-    
-    pub fn set_source(&mut self, source: usize) {
-        self.source = Some(source);
-    }
-
-    #[allow(unused)]
-    pub fn url(&self) -> Url {
-        self.url.clone().unwrap()
-    }
-
-    #[allow(unused)]
-    pub fn source(&self) -> usize {
-        self.source.clone().unwrap()
-    }
-
 }
