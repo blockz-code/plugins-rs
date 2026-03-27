@@ -1242,8 +1242,9 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "ffbins-rs"
-version = "0.1.0"
-source = "git+https://github.com/blockz-code/ffbins-rs#d2b80adce421726f2c167ec96d02486e213e28fc"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25cc5f3c38f10745cd9e1d5f4dfebcfba994a5ebbe4f05481e58a6623b0e91bb"
 dependencies = [
  "reqwest",
  "serde",
