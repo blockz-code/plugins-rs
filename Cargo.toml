@@ -96,7 +96,7 @@ scraper = { version = "0.26.0", optional = true }
 
 
 # Media Ext
-ffbins-rs = { git = "https://github.com/blockz-code/ffbins-rs", optional = true }
+ffbins-rs = { version = "0.1.1", optional = true }
 
 
 
@@ -111,7 +111,7 @@ reqwest = { version = "0.13.2", optional = true, features = [ "blocking", "cooki
 
 
 # Helper Macros
-internal_macros = { path = "./internal_macros" }
+internal_macros = { version = "0.1.0", path = "./internal_macros" }
 
 
 [[example]]
