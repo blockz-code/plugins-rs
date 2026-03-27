@@ -1,7 +1,0 @@
-{
-    "name": "Test Plugin",
-    "description": "Test Plugin",
-    "identifier": "com.test.plugin",
-    "version": "1.0.0",
-    "entry": "index.ts"
-}

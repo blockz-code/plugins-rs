@@ -14,9 +14,6 @@ pub enum Error {
     StripPrefixError(#[from] std::path::StripPrefixError),
 
     #[error(transparent)]
-    WalkdirError(#[from] walkdir::Error),
-
-    #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
 
     #[error(transparent)]
@@ -52,7 +49,9 @@ pub enum Error {
     #[error(transparent)]
     ZipError(#[from] zip::result::ZipError),
 
-    
+
+
+
 
     #[cfg(feature = "7z")]
     #[error(transparent)]
@@ -67,6 +66,7 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
 
 
+    
 
 
     #[error("URL parse error")]
