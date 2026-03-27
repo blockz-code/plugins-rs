@@ -6,7 +6,7 @@ fn main() {
     let mut prt = match PluginSystem::builder()
         .add_source(Source::from_static(std::env::current_dir().unwrap().join("examples").join("javascript").join("plugins")))
         .add_embed(Source::from_embed(bind_dir!("examples/javascript/embed")))
-        .run() {
+        .run(None) {
             Ok(prt) => prt,
             Err(err) => panic!("{}", err),
         };

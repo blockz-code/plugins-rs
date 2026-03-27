@@ -5,12 +5,11 @@ mod modules;
 
 
 mod efs;
+use deno_core::Extension;
 pub use efs::{EFsData, EFsPath, FsFile, PluginsFs};
 
 
 pub use plugins_rs_macros::bind_dir;
-
-
 
 
 
@@ -28,8 +27,6 @@ use modules::{ ModuleLoader, SourceLoader };
 
 
 
-
-
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -41,15 +38,6 @@ use deno_core::{ serde_v8, v8 };
 
 
 
-
-
-/*
-
-    static:
-
-*/
-
-
 pub struct PluginSystem {
     sources : Arc<SourceLoader>,
     runtime : Option<JsRuntime>,
@@ -57,16 +45,12 @@ pub struct PluginSystem {
 
 impl PluginSystem {
 
-    //
-
     pub fn builder() -> Self {
         Self {
             runtime : None,
             sources : Arc::new(SourceLoader::new()),
         }
     }
-
-    //
 
     pub fn add_embed(self, source: Source) -> Self {
         self.sources.add_embed(source);
@@ -78,20 +62,19 @@ impl PluginSystem {
         self
     }
 
-    //
+    async fn set_runtime(&mut self, exts: Option<Vec<Extension>>) {
 
-    async fn set_runtime(&mut self) {
-
-        let exstensions = vec![
-            //deno_webidl::deno_webidl::init(),
-            //deno_web::deno_web::init(Arc::new(Default::default()), None, Default::default()),
-
+        let mut exstensions = vec![
             crate::extensions::core::init(),
             #[cfg(feature = "media")]
             crate::extensions::media::init(),
             #[cfg(feature = "scrape")]
             crate::extensions::scrape::init(),
         ];
+
+        if exts.is_some() {
+            exstensions.extend(exts.unwrap());
+        }
 
         self.runtime = Some(JsRuntime::new(RuntimeOptions {
             is_main: true,
@@ -104,11 +87,9 @@ impl PluginSystem {
 
     }
 
-    //
+    async fn initialize(&mut self, exts: Option<Vec<Extension>>) -> Result<()> {
 
-    async fn initialize(&mut self) -> Result<()> {
-
-        self.set_runtime().await;
+        self.set_runtime(exts).await;
 
         let runtime = self.runtime.as_mut().unwrap();
 
@@ -128,29 +109,20 @@ impl PluginSystem {
         Ok(())
     }
 
-    //
-
     /// use your custom rt to run.
-    pub async fn run_into(mut self) -> crate::Result<PluginSystem> {
-        self.initialize().await?;
+    pub async fn run_into(mut self, exstensions: Option<Vec<Extension>>) -> crate::Result<PluginSystem> {
+        self.initialize(exstensions).await?;
         Ok(self)
     }
 
     /// run custom
-    pub fn run(mut self) -> crate::Result<PluginSystem> {
+    pub fn run(mut self, exstensions: Option<Vec<Extension>>) -> crate::Result<PluginSystem> {
         let art = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
-        art.block_on(self.initialize())?;
+        art.block_on(self.initialize(exstensions))?;
         Ok(self)
     }
 
-    //
-    //
-    //
-    // PUBLIC FUNCTIONS
-    //
-    //
-    //
-
+    /// execute a plugin command
     pub fn execute(&mut self, namespace: &'static str, plugin: &'static str, key: &'static str) -> crate::Result<serde_json::Value> {
         let code = format!(r#"globalThis.Plugins.loadPlugin("{}").{}"#, plugin, key);
         let runtime = self.runtime.as_mut().unwrap();
@@ -160,8 +132,7 @@ impl PluginSystem {
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?)
     }
 
-    //
-
+    /// eval js
     pub fn eval(&mut self, namespace: &'static str, message: &'static str) -> crate::Result<serde_json::Value> {
         let runtime = self.runtime.as_mut().unwrap();
         let result = runtime.execute_script(namespace, message)?;
@@ -169,9 +140,8 @@ impl PluginSystem {
         let local = v8::Local::new(scope, result);
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?)
     }
-    
-    //
 
+    /// eval js and get string
     pub fn send(&mut self, namespace: &'static str, message: &'static str) -> crate::Result<String> {
         let runtime = self.runtime.as_mut().unwrap();
         let result = runtime.execute_script(namespace, message)?;
@@ -179,16 +149,8 @@ impl PluginSystem {
         let local = v8::Local::new(scope, result);
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?.to_string())
     }
-    
-    //
 
 }
-
-
-
-
-
-
 
 
 

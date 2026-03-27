@@ -16,7 +16,7 @@
 
 **Cargo.toml**
 ```toml
-plugin-rs = { version = "0.1.1" }
+plugin-rs = { version = "0.1.2" }
 ```
 
 ---
@@ -28,7 +28,7 @@ plugin-rs = { version = "0.1.1" }
 
 
 **Not Supported yet**
-+ npm, jsr packages (only local)
++ packages like `npm`, `jsr`, `git` *(comming soon)*
 
 ---
 
@@ -42,7 +42,7 @@ fn main() {
     let mut plugins = match PluginSystem::builder()
         .add_source(Source::from_static(std::env::current_dir().unwrap().join("javascript").join("plugins")))
         .add_embed(Source::from_embed(bind_dir!("javascript/embed")))
-        .run() {
+        .run(None) {
             Ok(prt) => prt,
             Err(err) => panic!("{}", err),
         };
