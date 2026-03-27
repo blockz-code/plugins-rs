@@ -13,8 +13,6 @@ pub use plugins_rs_macros::bind_dir;
 
 
 
-
-
 pub use errors::{ Error, Result };
 
 
@@ -25,8 +23,6 @@ pub use modules::{ Source, SourceType, Plugin };
 
 
 use modules::{ ModuleLoader, SourceLoader };
-
-
 
 
 
@@ -42,15 +38,6 @@ use deno_core::{ serde_v8, v8 };
 
 
 
-
-
-/*
-
-    static:
-
-*/
-
-
 pub struct PluginSystem {
     sources : Arc<SourceLoader>,
     runtime : Option<JsRuntime>,
@@ -58,16 +45,12 @@ pub struct PluginSystem {
 
 impl PluginSystem {
 
-    //
-
     pub fn builder() -> Self {
         Self {
             runtime : None,
             sources : Arc::new(SourceLoader::new()),
         }
     }
-
-    //
 
     pub fn add_embed(self, source: Source) -> Self {
         self.sources.add_embed(source);
@@ -78,8 +61,6 @@ impl PluginSystem {
         self.sources.add(source);
         self
     }
-
-    //
 
     async fn set_runtime(&mut self, exts: Option<Vec<Extension>>) {
 
@@ -106,8 +87,6 @@ impl PluginSystem {
 
     }
 
-    //
-
     async fn initialize(&mut self, exts: Option<Vec<Extension>>) -> Result<()> {
 
         self.set_runtime(exts).await;
@@ -130,8 +109,6 @@ impl PluginSystem {
         Ok(())
     }
 
-    //
-
     /// use your custom rt to run.
     pub async fn run_into(mut self, exstensions: Option<Vec<Extension>>) -> crate::Result<PluginSystem> {
         self.initialize(exstensions).await?;
@@ -145,14 +122,7 @@ impl PluginSystem {
         Ok(self)
     }
 
-    //
-    //
-    //
-    // PUBLIC FUNCTIONS
-    //
-    //
-    //
-
+    /// execute a plugin command
     pub fn execute(&mut self, namespace: &'static str, plugin: &'static str, key: &'static str) -> crate::Result<serde_json::Value> {
         let code = format!(r#"globalThis.Plugins.loadPlugin("{}").{}"#, plugin, key);
         let runtime = self.runtime.as_mut().unwrap();
@@ -162,8 +132,7 @@ impl PluginSystem {
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?)
     }
 
-    //
-
+    /// eval js
     pub fn eval(&mut self, namespace: &'static str, message: &'static str) -> crate::Result<serde_json::Value> {
         let runtime = self.runtime.as_mut().unwrap();
         let result = runtime.execute_script(namespace, message)?;
@@ -171,9 +140,8 @@ impl PluginSystem {
         let local = v8::Local::new(scope, result);
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?)
     }
-    
-    //
 
+    /// eval js and get string
     pub fn send(&mut self, namespace: &'static str, message: &'static str) -> crate::Result<String> {
         let runtime = self.runtime.as_mut().unwrap();
         let result = runtime.execute_script(namespace, message)?;
@@ -181,16 +149,8 @@ impl PluginSystem {
         let local = v8::Local::new(scope, result);
         Ok(serde_v8::from_v8::<serde_json::Value>(scope, local)?.to_string())
     }
-    
-    //
 
 }
-
-
-
-
-
-
 
 
 
